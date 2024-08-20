@@ -1,0 +1,12 @@
+{
+  "module": {
+    "name": "android_id",
+    "type": "har",
+    "deviceTypes": [
+      "default",
+      "tablet"
+    ],
+    "requestPermissions": [
+    ]
+  }
+}
