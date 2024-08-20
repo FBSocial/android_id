@@ -13,7 +13,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import {
   AbilityPluginBinding
 } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/ability/AbilityPluginBinding';
-
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 /** AndroidIdPlugin **/
 export default class AndroidIdPlugin implements FlutterPlugin, MethodCallHandler {
@@ -54,31 +54,29 @@ export default class AndroidIdPlugin implements FlutterPlugin, MethodCallHandler
   async getOAID(result: MethodResult){
     // 进入页面时触发动态授权弹框，向用户请求授权广告跟踪权限
     const atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+    //策略： 优先申请权限拿oaid (IDFA),  拿不到就拿odid (IDFV)
+    let odid: string = deviceInfo.ODID;
     try {
       atManager.requestPermissionsFromUser(this.context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
         if (data.authResults[0] == 0) {
           hilog.info(0x0000, 'testTag', '%{public}s', 'succeeded in requesting permission');
           identifier.getOAID((err: BusinessError, data: string) => {
             if (err.code) {
-              hilog.error(0x0000, 'testTag', '%{public}s', `get oaid failed, error: ${err.code} ${err.message}`);
-              result.success(null);
+              result.success(odid);
             } else {
               const oaid: string = data;
               result.success(oaid);
-              hilog.info(0x0000, 'testTag', '%{public}s', `succeeded in getting oaid by callback , oaid: ${oaid}`);
             }
           });
         } else {
-          result.success(null);
           hilog.error(0x0000, 'testTag', '%{public}s', 'user rejected');
+          result.success(odid);
         }
       }).catch((err: BusinessError) => {
-        result.success(null);
-        hilog.error(0x0000, 'testTag', '%{public}s', `request permission failed, error: ${err.code} ${err.message}`);
+        result.success(odid);
       })
     } catch (err) {
-      result.success(null);
-      hilog.error(0x0000, 'testTag', '%{public}s', `catch err->${err.code}, ${err.message}`);
+      result.success(odid);
     }
   }
 }
